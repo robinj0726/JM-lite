@@ -1,4 +1,9 @@
+#include "win32.h"
+#include "h264decoder.h"
+
 int main(int argc, char **argv)
 {
-  return 0;
+    InputParameters InputParams;
+
+    return 0;
 }

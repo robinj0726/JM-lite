@@ -1,0 +1,1 @@
+executable('ldecod', 'src/decoder_test.c')

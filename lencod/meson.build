@@ -1,0 +1,1 @@
+executable('lencod', 'src/lencod.c')

@@ -1,1 +1,1 @@
-executable('ldecod', 'src/decoder_test.c', include_directories: ['../lcommon/inc', './inc'])
+executable('ldecod', 'src/decoder_test.c', include_directories: 'inc', dependencies: lcommon_dep)

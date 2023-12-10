@@ -4,6 +4,9 @@
 #include "defines.h"
 #include "win32.h"
 #include "params.h"
+#include "ifunctions.h"
+
+char errortext[ET_SIZE]; //!< buffer for error message for exit with error()
 
 typedef struct inp_par_enc InputParameters;
 

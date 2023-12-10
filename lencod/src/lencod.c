@@ -24,6 +24,11 @@ static void alloc_video_params( VideoParameters **p_Vid)
 static void alloc_params( InputParameters **p_Inp )
 {
   *p_Inp = (InputParameters *) calloc(1, sizeof(InputParameters));
+
+  (*p_Inp)->top_left          = NULL;
+  (*p_Inp)->bottom_right      = NULL;
+  (*p_Inp)->slice_group_id    = NULL;
+  (*p_Inp)->run_length_minus1 = NULL;
 }
 
 static void alloc_encoder( EncoderParams **p_Enc)
@@ -37,11 +42,31 @@ static void alloc_encoder( EncoderParams **p_Enc)
 
 }
 
+static void free_encoder (EncoderParams *p_Enc)
+{
+  free_pointer( p_Enc );
+}
+
+static void free_params (InputParameters *p_Inp)
+{
+  if ( p_Inp != NULL )
+  {
+    free_pointer( p_Inp->top_left );
+    free_pointer( p_Inp->bottom_right );
+    free_pointer( p_Inp->slice_group_id );
+    free_pointer( p_Inp->run_length_minus1 );
+    free_pointer( p_Inp );
+  }
+}
+
 int main(int argc, char **argv)
 {
   init_time();
 
   alloc_encoder(&p_Enc);
+
+  free_params (p_Enc->p_Inp);  
+  free_encoder(p_Enc);
 
   return 0;
 }

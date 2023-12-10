@@ -8,7 +8,10 @@
 typedef struct inp_par
 {
   char infile[FILE_NAME_SIZE];                       //!< H.264 inputfile
+  char outfile[FILE_NAME_SIZE];                      //!< Decoded YUV 4:2:0 output
+  char reffile[FILE_NAME_SIZE];                      //!< Optional YUV 4:2:0 reference file for SNR measurement
 
+  int bDisplayDecParams;
 } InputParameters;
 
 // video parameters

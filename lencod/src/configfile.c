@@ -1,5 +1,8 @@
 #include "global.h"
 #include "configfile.h"
+#include "img_io.h"
+
+static void PatchInp                (VideoParameters *p_Vid, InputParameters *p_Inp);
 
 void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av[])
 {
@@ -7,9 +10,15 @@ void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av
   //Set default parameters.
   printf ("Setting Default Parameters...\n");
   InitParams(Map);
+  *p_Inp = cfgparams;
+  
+  PatchInp(p_Vid, p_Inp);
 
   // (0:Disable Display of Encoder Params 1: Enable)
   p_Inp->DisplayEncParams = 1; 
+  strcpy(p_Inp->input_file1.fname, "foreman_part_qcif.yuv");
+
+  cfgparams = *p_Inp;
 
   if (p_Inp->DisplayEncParams)
     DisplayEncoderParams(Map);
@@ -34,4 +43,10 @@ static int DisplayEncoderParams(Mapping *Map)
   }
   printf("******************************************************\n");
   return -1;
+}
+
+static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
+{
+  ParseVideoType(&p_Inp->input_file1);
+  ParseFrameNoFormatFromString (&p_Inp->input_file1);
 }

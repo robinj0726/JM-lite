@@ -15,6 +15,8 @@ typedef struct video_par
   InputParameters          *p_Inp;
   struct decoded_picture_buffer *p_Dpb_layer[MAX_NUM_DPB_LAYERS];
 
+  int num_of_layers; 
+
 } VideoParameters;
 
 typedef struct encoder_params
@@ -26,5 +28,7 @@ typedef struct encoder_params
 } EncoderParams;
 
 extern void free_encoder_memory        (VideoParameters *p_Vid, InputParameters *p_Inp);
+
+extern void error(char *text, int code);
 
 #endif

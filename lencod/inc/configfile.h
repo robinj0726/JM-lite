@@ -54,7 +54,7 @@ Mapping Map[] = {
     //{"PList0References",         &cfgparams.P_List0_refs[0],              0,   0.0,                       1,  0.0,             16.0,                             },
     //{"BList0References",         &cfgparams.B_List0_refs[0],              0,   0.0,                       1,  0.0,             16.0,                             },
     //{"BList1References",         &cfgparams.B_List1_refs[0],              0,   1.0,                       1,  0.0,             16.0,                             },
-    //{"NumberOfViews",            &cfgparams.num_of_views,                 0,   1.0,                       1,  1.0,              2.0,                             },
+    {"NumberOfViews",            &cfgparams.num_of_views,                 0,   1.0,                       1,  1.0,              2.0,                             },
 #if (MVC_EXTENSION_ENABLE)
     {"View1ConfigFile",          &cfgparams.View1ConfigName,              1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },
 #endif
@@ -73,7 +73,7 @@ Mapping Map[] = {
     //{"SliceMode",                &cfgparams.slice_mode,                   0,   0.0,                       1,  0.0,              3.0,                             },
     //{"SliceArgument",            &cfgparams.slice_argument,               0,   1.0,                       2,  1.0,              1.0,                             },
     //{"UseConstrainedIntraPred",  &cfgparams.UseConstrainedIntraPred,      0,   0.0,                       1,  0.0,              1.0,                             },
-    //{"InputFile",                &cfgparams.input_file1.fname,            1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },
+    {"InputFile",                &cfgparams.input_file1.fname,            1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },
     //{"InputHeaderLength",        &cfgparams.infile_header,                0,   0.0,                       2,  0.0,              1.0,                             },
     //{"OutputFile",               &cfgparams.outfile,                      1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },
     //{"ReconFile",                &cfgparams.ReconFile,                    1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },

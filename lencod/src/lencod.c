@@ -87,6 +87,13 @@ int main(int argc, char **argv)
 
 static void init_encoder(VideoParameters *p_Vid, InputParameters *p_Inp)
 {
+  p_Vid->p_Inp = p_Inp;
+
+  //set coding layer number;
+  p_Vid->num_of_layers = p_Inp->num_of_views;
+
+  // Open Files
+  OpenFiles(&p_Inp->input_file1);
 
 }
 

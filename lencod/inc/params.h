@@ -8,6 +8,13 @@ struct inp_par_enc
 {
   int ProfileIDC;                       //!< value of syntax element profile_idc
   int LevelIDC;                         //!< value of syntax element level_idc
+  int IntraProfile;                     //!< Enable Intra profiles
+
+  int no_frames;                        //!< number of frames to be encoded
+
+  FrameFormat source;                   //!< source related information
+  FrameFormat output;                   //!< output related information
+  int yuv_format;                       //!< YUV format (0=4:0:0, 1=4:2:0, 2=4:2:2, 3=4:4:4)
 
   int num_of_views;                     //!< number of views to encode (1=1view, 2=2views)
 

@@ -4,6 +4,10 @@
 #include "win32.h"
 #include "defines.h"
 
+#define ET_SIZE 300      //!< size of error text buffer
+extern char errortext[ET_SIZE]; //!< buffer for error message for exit with error()
+extern void error(char *text, int code);
+
 // input parameters from configuration file
 typedef struct inp_par
 {

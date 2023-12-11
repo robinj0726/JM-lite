@@ -11,5 +11,7 @@ struct inp_par_enc
   byte *slice_group_id;                   //!< slice_group_id is for slice group type being 6
   int *run_length_minus1;                //!< run_length_minus1 is for slice group type being 0
 
+  int DisplayEncParams;
+
 };
 #endif

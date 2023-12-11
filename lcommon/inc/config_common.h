@@ -14,6 +14,6 @@ typedef struct {
 } Mapping;
 
 extern int  InitParams            (Mapping *Map);
-extern int DisplayParams(Mapping *Map, char *message);
+extern int  DisplayParams         (Mapping *Map, char *message);
 #endif
 

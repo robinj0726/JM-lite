@@ -25,4 +25,6 @@ typedef struct encoder_params
   int64              bufferSize;     //!< buffer size for tiff reads (not currently supported)
 } EncoderParams;
 
+extern void free_encoder_memory        (VideoParameters *p_Vid, InputParameters *p_Inp);
+
 #endif

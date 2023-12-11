@@ -5,6 +5,9 @@
 
 EncoderParams   *p_Enc = NULL;
 
+static void init_encoder        (VideoParameters *p_Vid, InputParameters *p_Inp);
+static void encode_sequence     (VideoParameters *p_Vid, InputParameters *p_Inp);
+
 static void alloc_video_params( VideoParameters **p_Vid)
 {
   *p_Vid = (VideoParameters *) calloc(1, sizeof(VideoParameters));
@@ -65,8 +68,33 @@ int main(int argc, char **argv)
 
   alloc_encoder(&p_Enc);
 
+  Configure (p_Enc->p_Vid, p_Enc->p_Inp, argc, argv);
+
+  // init encoder
+  init_encoder(p_Enc->p_Vid, p_Enc->p_Inp);
+
+  // encode sequence
+  encode_sequence(p_Enc->p_Vid, p_Enc->p_Inp);
+
+  // terminate sequence
+  free_encoder_memory(p_Enc->p_Vid, p_Enc->p_Inp);
+
   free_params (p_Enc->p_Inp);  
   free_encoder(p_Enc);
 
   return 0;
+}
+
+static void init_encoder(VideoParameters *p_Vid, InputParameters *p_Inp)
+{
+
+}
+
+static void encode_sequence(VideoParameters *p_Vid, InputParameters *p_Inp)
+{
+}
+
+void free_encoder_memory(VideoParameters *p_Vid, InputParameters *p_Inp)
+{
+
 }

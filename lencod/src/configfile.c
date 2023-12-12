@@ -21,7 +21,7 @@ void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av
   content = GetConfigFileContent (filename);
   // if (NULL==content)
   //   error (errortext, 300);
-  ParseContent (p_Inp, Map, content, (int) strlen(content));
+  ParseContent (p_Inp, Map, NULL, 0);
   printf ("\n");
 
   PatchInp(p_Vid, p_Inp);

@@ -1,6 +1,7 @@
 #ifndef _PARAMS_H_
 #define _PARAMS_H_
 
+#include "types.h"
 #include "frame.h"
 #include "io_video.h"
 

@@ -95,6 +95,7 @@ static void init_encoder(VideoParameters *p_Vid, InputParameters *p_Inp)
   // Open Files
   OpenFiles(&p_Inp->input_file1);
 
+  information_init(p_Vid, p_Inp, p_Vid->p_Stats);
 }
 
 static void encode_sequence(VideoParameters *p_Vid, InputParameters *p_Inp)

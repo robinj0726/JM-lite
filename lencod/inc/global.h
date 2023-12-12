@@ -17,6 +17,8 @@ typedef struct video_par
 
   int num_of_layers; 
 
+  struct stat_parameters  *p_Stats;
+
 } VideoParameters;
 
 typedef struct encoder_params

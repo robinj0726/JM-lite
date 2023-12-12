@@ -1,6 +1,6 @@
 project('JM', 'c')
-add_global_arguments(['-DWIN32','-DINCLUDED_BY_CONFIGFILE_C'], language: 'c')
+add_global_arguments(['-DWIN32'], language: 'c')
 
 subdir('lcommon')
-subdir('ldecod')
+# subdir('ldecod')
 subdir('lencod')

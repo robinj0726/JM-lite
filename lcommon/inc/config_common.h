@@ -13,7 +13,9 @@ typedef struct {
   int    char_size;   //!< Dimension of type char[]
 } Mapping;
 
+extern char *GetConfigFileContent (char *Filename);
 extern int  InitParams            (Mapping *Map);
 extern int  DisplayParams         (Mapping *Map, char *message);
+extern void ParseContent          (InputParameters *p_Inp, Mapping *Map, char *buf, int bufsize);
 #endif
 

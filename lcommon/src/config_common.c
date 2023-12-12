@@ -1,6 +1,10 @@
-#include <stdio.h>
-#include <stddef.h>
-#include "config_common.h"
+#include "global.h"
+#include "configfile.h"
+
+char *GetConfigFileContent (char *Filename)
+{
+  return NULL;
+}
 
 int InitParams(Mapping *Map)
 {
@@ -38,3 +42,7 @@ int DisplayParams(Mapping *Map, char *message)
   return i;
 }
 
+void ParseContent (InputParameters *p_Inp, Mapping *Map, char *buf, int bufsize)
+{
+  *p_Inp = cfgparams;
+}

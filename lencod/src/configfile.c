@@ -1,4 +1,7 @@
+#define INCLUDED_BY_CONFIGFILE_C
+
 #include "global.h"
+#include "config_common.h"
 #include "configfile.h"
 #include "img_io.h"
 
@@ -6,17 +9,22 @@ static void PatchInp                (VideoParameters *p_Vid, InputParameters *p_
 
 void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av[])
 {
+  char *content = NULL;
+  char *filename=DEFAULTCONFIGFILENAME;
+
   memset (&cfgparams, 0, sizeof (InputParameters));
   //Set default parameters.
   printf ("Setting Default Parameters...\n");
   InitParams(Map);
-  *p_Inp = cfgparams;
-  
-  PatchInp(p_Vid, p_Inp);
 
-  // (0:Disable Display of Encoder Params 1: Enable)
-  p_Inp->DisplayEncParams = 1; 
-  strcpy(p_Inp->input_file1.fname, "foreman_part_qcif.yuv");
+  printf ("Parsing Configfile %s", filename);
+  content = GetConfigFileContent (filename);
+  // if (NULL==content)
+  //   error (errortext, 300);
+  ParseContent (p_Inp, Map, content, (int) strlen(content));
+  printf ("\n");
+
+  PatchInp(p_Vid, p_Inp);
 
   cfgparams = *p_Inp;
 
@@ -49,4 +57,9 @@ static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
 {
   ParseVideoType(&p_Inp->input_file1);
   ParseFrameNoFormatFromString (&p_Inp->input_file1);
+
+  // (0:Disable Display of Encoder Params 1: Enable)
+  p_Inp->DisplayEncParams = 1; 
+  strcpy(p_Inp->input_file1.fname, "foreman_part_qcif.yuv");
+
 }

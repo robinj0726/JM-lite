@@ -15,9 +15,16 @@ typedef struct video_par
   InputParameters          *p_Inp;
   struct decoded_picture_buffer *p_Dpb_layer[MAX_NUM_DPB_LAYERS];
 
+  struct stat_parameters  *p_Stats;
+
+  int p_dec;                      //!< decoded image file handle
+
   int num_of_layers; 
 
-  struct stat_parameters  *p_Stats;
+  //deprecative varialbes, they will be removed in future, so donot add varaibles here;
+  ColorFormat yuv_format;
+  int width;                   //!< Number of pels
+  int height;                  //!< Number of lines
 
 } VideoParameters;
 

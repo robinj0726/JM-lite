@@ -57,6 +57,7 @@ struct inp_par_enc
   int full_search;
 
   int rdopt;
+  int Distortion[TOTAL_DIST_TYPES];
 
   unsigned int *top_left;                         //!< top_left and bottom_right store values indicating foregrounds
   unsigned int *bottom_right;

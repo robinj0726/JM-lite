@@ -3,6 +3,7 @@
 
 #include "defines.h"
 #include "win32.h"
+#include "typedefs.h"
 #include "params.h"
 #include "ifunctions.h"
 
@@ -14,6 +15,20 @@ typedef struct video_par
 {
   InputParameters          *p_Inp;
   struct decoded_picture_buffer *p_Dpb_layer[MAX_NUM_DPB_LAYERS];
+
+  // files
+  FILE *p_log;                     //!< SNR file
+
+  // generic output file
+  FILE **f_out;
+  // ANNEX B output file
+  FILE *f_annexb; 
+  // RTP output file
+  FILE *f_rtp;
+  int CurrentRTPTimestamp;             //!< The RTP timestamp of the current packet,
+  //! incremented with all P and I frames
+  uint16 CurrentRTPSequenceNumber;     //!< The RTP sequence number of the current packet
+  //!< incremented by one for each sent packet
 
   struct stat_parameters  *p_Stats;
 

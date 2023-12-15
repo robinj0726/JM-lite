@@ -2,6 +2,7 @@
 #define _MBUFFERENC_H_
 
 #include "global.h"
+#include "enc_statistics.h"
 
 typedef struct decoded_picture_buffer
 {

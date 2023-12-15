@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "global.h"
 #include "mbuffer.h"
 
@@ -10,9 +8,14 @@ static void encode_sequence     (VideoParameters *p_Vid, InputParameters *p_Inp)
 
 static void alloc_video_params( VideoParameters **p_Vid)
 {
-  *p_Vid = (VideoParameters *) calloc(1, sizeof(VideoParameters));
-
-  (*p_Vid)->p_Dpb_layer[0]     = (DecodedPictureBuffer *) calloc(MAX_NUM_DPB_LAYERS, sizeof(DecodedPictureBuffer));
+  if ((*p_Vid = (VideoParameters *) calloc(1, sizeof(VideoParameters)))==NULL) 
+    no_mem_exit("alloc_video_params: p_Vid");
+  // if ((((*p_Vid)->p_Dist)  = (DistortionParams *) calloc(1, sizeof(DistortionParams)))==NULL) 
+  //   no_mem_exit("alloc_video_params: p_Dist");
+  if ((((*p_Vid)->p_Stats) = (StatParameters *) calloc(1, sizeof(StatParameters)))==NULL) 
+    no_mem_exit("alloc_video_params: p_Stats");
+  if (((*p_Vid)->p_Dpb_layer[0]     = (DecodedPictureBuffer *) calloc(MAX_NUM_DPB_LAYERS, sizeof(DecodedPictureBuffer)))==NULL) 
+    no_mem_exit("alloc_video_params: p_Dpb_layer");
   {
     int i;
     for(i=1; i<MAX_NUM_DPB_LAYERS; i++)
@@ -21,7 +24,24 @@ static void alloc_video_params( VideoParameters **p_Vid)
       (*p_Vid)->p_Dpb_layer[i]->layer_id = i;
     }
   }
+  //if ((((*p_Vid)->p_Quant)  = (QuantParameters *) calloc(1, sizeof(QuantParameters)))==NULL) 
+  //  no_mem_exit("alloc_video_params: p_Quant");
+  //if ((((*p_Vid)->p_QScale)  = (ScaleParameters *) calloc(1, sizeof(ScaleParameters)))==NULL) 
+  //  no_mem_exit("alloc_video_params: p_QScale");
+  //if ((((*p_Vid)->p_SEI)  = (SEIParameters *) calloc(1, sizeof(SEIParameters)))==NULL) 
+  //  no_mem_exit("alloc_video_params: p_SEI");
 
+
+  (*p_Vid)->p_dec = -1;
+#if (MVC_EXTENSION_ENABLE)
+  (*p_Vid)->p_dec2 = -1;
+#endif
+  (*p_Vid)->p_log = NULL;
+  (*p_Vid)->f_annexb = NULL;
+  // Init rtp related info
+  (*p_Vid)->f_rtp = NULL;
+  (*p_Vid)->CurrentRTPTimestamp = 0;         
+  (*p_Vid)->CurrentRTPSequenceNumber = 0;
 }
 
 static void alloc_params( InputParameters **p_Inp )

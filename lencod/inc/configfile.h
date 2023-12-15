@@ -404,30 +404,30 @@ Mapping Map[] = {
     //{"UMHexDSR",                 &cfgparams.UMHexDSR,                     0,   1.0,                       1,  0.0,              1.0,                             },
     //{"UMHexScale",               &cfgparams.UMHexScale,                   0,   1.0,                       0,  0.0,              0.0,                             },
     // Parameters for EPZS control
-    //{"EPZSPattern",              &cfgparams.EPZSPattern,                  0,   2.0,                       1,  0.0,              5.0,                             },
-    //{"EPZSDualRefinement",       &cfgparams.EPZSDual,                     0,   3.0,                       1,  0.0,              6.0,                             },
-    //{"EPZSFixedPredictors",      &cfgparams.EPZSFixed,                    0,   3.0,                       1,  0.0,              3.0,                             },
-    //{"EPZSAggressiveWindow",     &cfgparams.EPZSAggressiveWindow,         0,   0.0,                       1,  0.0,              1.0,                             },
+    {"EPZSPattern",              &cfgparams.EPZSPattern,                  0,   2.0,                       1,  0.0,              5.0,                             },
+    {"EPZSDualRefinement",       &cfgparams.EPZSDual,                     0,   3.0,                       1,  0.0,              6.0,                             },
+    {"EPZSFixedPredictors",      &cfgparams.EPZSFixed,                    0,   3.0,                       1,  0.0,              3.0,                             },
+    {"EPZSAggressiveWindow",     &cfgparams.EPZSAggressiveWindow,         0,   0.0,                       1,  0.0,              1.0,                             },
 #if (MVC_EXTENSION_ENABLE)
     {"EPZSTemporal",             &cfgparams.EPZSTemporal[0],              0,   1.0,                       1,  0.0,              1.0,                             },
 #else
-    //{"EPZSTemporal",             &cfgparams.EPZSTemporal,                 0,   1.0,                       1,  0.0,              1.0,                             },
+    {"EPZSTemporal",             &cfgparams.EPZSTemporal,                 0,   1.0,                       1,  0.0,              1.0,                             },
 #endif
-    //{"EPZSSpatialMem",           &cfgparams.EPZSSpatialMem,               0,   1.0,                       1,  0.0,              1.0,                             },
-    //{"EPZSBlockType",            &cfgparams.EPZSBlockType,                0,   1.0,                       1,  0.0,              1.0,                             },
+    {"EPZSSpatialMem",           &cfgparams.EPZSSpatialMem,               0,   1.0,                       1,  0.0,              1.0,                             },
+    {"EPZSBlockType",            &cfgparams.EPZSBlockType,                0,   1.0,                       1,  0.0,              1.0,                             },
 #if (MVC_EXTENSION_ENABLE)
     {"EPZSMinThresScale",        &cfgparams.EPZSMinThresScale[0],         0,   0.0,                       0,  0.0,              0.0,                             },
     {"EPZSMaxThresScale",        &cfgparams.EPZSMaxThresScale[0],         0,   2.0,                       0,  0.0,              0.0,                             },
     {"EPZSMedThresScale",        &cfgparams.EPZSMedThresScale[0],         0,   1.0,                       0,  0.0,              0.0,                             },
     {"EPZSSubPelThresScale",     &cfgparams.EPZSSubPelThresScale[0],      0,   1.0,                       0,  0.0,              0.0,                             },
 #else
-    //{"EPZSMinThresScale",        &cfgparams.EPZSMinThresScale,            0,   0.0,                       0,  0.0,              0.0,                             },
-    //{"EPZSMaxThresScale",        &cfgparams.EPZSMaxThresScale,            0,   2.0,                       0,  0.0,              0.0,                             },
-    //{"EPZSMedThresScale",        &cfgparams.EPZSMedThresScale,            0,   1.0,                       0,  0.0,              0.0,                             },
-    //{"EPZSSubPelThresScale",     &cfgparams.EPZSSubPelThresScale,         0,   2.0,                       0,  0.0,              0.0,                             },
+    {"EPZSMinThresScale",        &cfgparams.EPZSMinThresScale,            0,   0.0,                       0,  0.0,              0.0,                             },
+    {"EPZSMaxThresScale",        &cfgparams.EPZSMaxThresScale,            0,   2.0,                       0,  0.0,              0.0,                             },
+    {"EPZSMedThresScale",        &cfgparams.EPZSMedThresScale,            0,   1.0,                       0,  0.0,              0.0,                             },
+    {"EPZSSubPelThresScale",     &cfgparams.EPZSSubPelThresScale,         0,   2.0,                       0,  0.0,              0.0,                             },
 #endif
-    //{"EPZSSubPelME",             &cfgparams.EPZSSubPelME,                 0,   1.0,                       1,  0.0,              2.0,                             },
-    //{"EPZSSubPelMEBiPred",       &cfgparams.EPZSSubPelMEBiPred,           0,   1.0,                       1,  0.0,              2.0,                             },
+    {"EPZSSubPelME",             &cfgparams.EPZSSubPelME,                 0,   1.0,                       1,  0.0,              2.0,                             },
+    {"EPZSSubPelMEBiPred",       &cfgparams.EPZSSubPelMEBiPred,           0,   1.0,                       1,  0.0,              2.0,                             },
     //{"EPZSSubPelGrid",           &cfgparams.EPZSSubPelGrid,               0,   0.0,                       1,  0.0,              1.0,                             },
     //{"EPZSSubPelThresScale",     &cfgparams.EPZSSubPelThresScale,         0,   1.0,                       0,  0.0,              0.0,                             },
     //{"EPZSUseHMEPredictors",     &cfgparams.EPZSUseHMEPredictors,         0,   0.0,                       1,  0.0,              1.0,                             },

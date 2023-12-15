@@ -147,7 +147,7 @@ void information_init ( VideoParameters *p_Vid, InputParameters *p_Inp, StatPara
     else if (p_Inp->SearchMode[0] == EPZS)
     {
       fprintf(stdout,  " Motion Estimation Scheme          : EPZS\n");
-      // EPZSOutputStats(p_Inp, stdout, 0);
+      EPZSOutputStats(p_Inp, stdout, 0);
     }
     else if (p_Inp->SearchMode[0] == FAST_FULL_SEARCH)
       fprintf(stdout,  " Motion Estimation Scheme          : Fast Full Search\n");

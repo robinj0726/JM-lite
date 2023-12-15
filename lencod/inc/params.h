@@ -83,5 +83,32 @@ struct inp_par_enc
   // Search Algorithm
   SearchType SearchMode[2];
 
+  // EPZS related parameters
+  int EPZSPattern;
+  int EPZSDual;
+  int EPZSFixed;
+  int EPZSAggressiveWindow;
+#if (MVC_EXTENSION_ENABLE)
+  int EPZSTemporal[2];
+#else
+  int EPZSTemporal;  
+#endif
+  int EPZSSpatialMem;
+  int EPZSBlockType;
+#if (MVC_EXTENSION_ENABLE)
+  int EnableEnhLayerEPZSScalers;
+  int EPZSMinThresScale[2];
+  int EPZSMaxThresScale[2];
+  int EPZSMedThresScale[2];
+  int EPZSSubPelThresScale[2];
+#else
+  int EPZSMinThresScale;
+  int EPZSMaxThresScale;
+  int EPZSMedThresScale;
+  int EPZSSubPelThresScale;
+#endif
+  int EPZSSubPelME;
+  int EPZSSubPelMEBiPred;
+
 };
 #endif

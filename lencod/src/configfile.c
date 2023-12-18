@@ -6,6 +6,25 @@
 #include "img_io.h"
 
 static void PatchInp                (VideoParameters *p_Vid, InputParameters *p_Inp);
+static int  TestEncoderParams       (Mapping *Map, int bitdepth_qp_scale[3]);
+
+static const int mb_width_cr[4] = {0,8, 8,16};
+static const int mb_height_cr[4]= {0,8,16,16};
+
+static void SetVUIScaleAndTicks(InputParameters *p_Inp, double frame_rate);
+
+static void set_jm_vui_params( InputParameters *p_Inp )
+{
+  SetVUIScaleAndTicks(p_Inp, 1.25 * p_Inp->output.frame_rate); 
+
+  p_Inp->EnableVUISupport             = 1;
+
+  p_Inp->VUI.nal_hrd_parameters_present_flag = 0;
+  p_Inp->VUI.vcl_hrd_parameters_present_flag = 0;
+  p_Inp->VUI.timing_info_present_flag = 1;   
+  p_Inp->VUI.pic_struct_present_flag  = 1;
+  p_Inp->VUI.fixed_frame_rate_flag    = 1;
+}
 
 void JMHelpExit (void)
 {
@@ -45,6 +64,126 @@ void JMHelpExit (void)
     "   lencod  -f curenc1.cfg -p FramesToBeEncoded=30 -p QPISlice=28 -p QPPSlice=28 -p QPBSlice=30\n");
 
   exit(-1);
+}
+
+int64 getVideoFileSize(int video_file)
+{
+   int64 fsize;   
+
+   lseek(video_file, 0, SEEK_END); 
+   fsize = tell((int) video_file); 
+   lseek(video_file, 0, SEEK_SET); 
+
+   return fsize;
+}
+
+void get_number_of_frames (InputParameters *p_Inp, VideoDataFile *input_file)
+{
+  int64 fsize = getVideoFileSize(input_file->f_num);
+
+  int64 isize = (int64) p_Inp->source.size;
+  int maxBitDepth = imax(p_Inp->source.bit_depth[0], p_Inp->source.bit_depth[1]);
+
+  isize <<= (maxBitDepth > 8)? 1: 0;
+  p_Inp->no_frames   = (int) (((fsize - p_Inp->infile_header)/ isize) - p_Inp->start_frame);
+}
+
+static void updateMaxValue(FrameFormat *format)
+{
+  format->max_value[0] = (1 << format->bit_depth[0]) - 1;
+  format->max_value_sq[0] = format->max_value[0] * format->max_value[0];
+  format->max_value[1] = (1 << format->bit_depth[1]) - 1;
+  format->max_value_sq[1] = format->max_value[1] * format->max_value[1];
+  format->max_value[2] = (1 << format->bit_depth[2]) - 1;
+  format->max_value_sq[2] = format->max_value[2] * format->max_value[2];
+}
+
+static void updateOutFormat(InputParameters *p_Inp)
+{
+  FrameFormat *output = &p_Inp->output;
+  FrameFormat *source = &p_Inp->source;
+  output->yuv_format  = (ColorFormat) p_Inp->yuv_format;
+  source->yuv_format  = (ColorFormat) p_Inp->yuv_format;
+
+  if (p_Inp->src_resize == 0)
+  {
+    output->width[0]   = source->width[0];
+    output->height[0]  = source->height[0];
+  }
+
+  if (p_Inp->yuv_format == YUV400) // reset bitdepth of chroma for 400 content
+  {
+    source->bit_depth[1] = 8;
+    output->bit_depth[1] = 8;
+    source->width[1]  = 0;
+    source->width[2]  = 0;
+    source->height[1] = 0;
+    source->height[2] = 0;
+    output->width[1]  = 0;
+    output->width[2]  = 0;
+    output->height[1] = 0;
+    output->height[2] = 0;
+  }
+  else
+  {
+    source->width[1]  = (source->width[0]  * mb_width_cr [output->yuv_format]) >> 4;
+    source->width[2]  = source->width[1];
+    source->height[1] = (source->height[0] * mb_height_cr[output->yuv_format]) >> 4;
+    source->height[2] = source->height[1];
+    output->width[1]  = (output->width[0]  * mb_width_cr [output->yuv_format]) >> 4;
+    output->width[2]  = output->width[1];
+    output->height[1] = (output->height[0] * mb_height_cr[output->yuv_format]) >> 4;
+    output->height[2] = output->height[1];
+  }
+
+  // source size
+  source->size_cmp[0] = source->width[0] * source->height[0];
+  source->size_cmp[1] = source->width[1] * source->height[1];
+  source->size_cmp[2] = source->size_cmp[1];
+  source->size        = source->size_cmp[0] + source->size_cmp[1] + source->size_cmp[2];
+  source->mb_width    = source->width[0]  / MB_BLOCK_SIZE;
+  source->mb_height   = source->height[0] / MB_BLOCK_SIZE;
+  source->pic_unit_size_on_disk = (imax(source->bit_depth[0], source->bit_depth[1]) > 8) ? 16 : 8;
+  source->pic_unit_size_shift3 = source->pic_unit_size_on_disk >> 3;
+
+
+  // output size (excluding padding)
+  output->size_cmp[0] = output->width[0] * output->height[0];
+  output->size_cmp[1] = output->width[1] * output->height[1];
+  output->size_cmp[2] = output->size_cmp[1];
+  output->size        = output->size_cmp[0] + output->size_cmp[1] + output->size_cmp[2];
+  output->mb_width    = output->width[0]  / MB_BLOCK_SIZE;
+  output->mb_height   = output->height[0] / MB_BLOCK_SIZE;
+
+
+  // both chroma components have the same bitdepth
+  source->bit_depth[2] = source->bit_depth[1];
+  output->bit_depth[2] = output->bit_depth[1];
+  
+  // if no bitdepth rescale ensure bitdepth is same
+  if (p_Inp->src_BitDepthRescale == 0) 
+  {    
+    output->bit_depth[0] = source->bit_depth[0];
+    output->bit_depth[1] = source->bit_depth[1];
+    output->bit_depth[2] = source->bit_depth[2];
+  }
+  output->pic_unit_size_on_disk = (imax(output->bit_depth[0], output->bit_depth[1]) > 8) ? 16 : 8;
+  output->pic_unit_size_shift3 = output->pic_unit_size_on_disk >> 3;
+  
+  if (p_Inp->enable_32_pulldown)
+  {
+    source->frame_rate  = source->frame_rate  * 5 / 4;
+    p_Inp->idr_period   = p_Inp->idr_period   * 5 / 4;
+    p_Inp->intra_period = p_Inp->intra_period * 5 / 4;
+    p_Inp->no_frames    = p_Inp->no_frames    * 5 / 4;
+  }
+
+  output->frame_rate = source->frame_rate / (p_Inp->frame_skip + 1);
+  output->color_model = source->color_model;
+  output->pixel_format = source->pixel_format;
+
+  updateMaxValue(source);
+  updateMaxValue(output);
 }
 
 void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av[])
@@ -202,6 +341,73 @@ void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av
 
   if (p_Inp->DisplayEncParams)
     DisplayEncoderParams(Map);
+}
+
+static int TestEncoderParams(Mapping *Map, int bitdepth_qp_scale[3])
+{
+  int i = 0;
+
+  while (Map[i].TokenName != NULL)
+  {
+    if (Map[i].param_limits == 1)
+    {
+      if (Map[i].Type == 0)
+      {
+        if ( * (int *) (Map[i].Place) < (int) Map[i].min_limit || * (int *) (Map[i].Place) > (int) Map[i].max_limit )
+        {
+          snprintf(errortext, ET_SIZE, "Error in input parameter %s. Check configuration file. Value should be in [%d, %d] range.", Map[i].TokenName, (int) Map[i].min_limit,(int)Map[i].max_limit );
+          error (errortext, 400);
+        }
+
+      }
+      else if (Map[i].Type == 2)
+      {
+        if ( * (double *) (Map[i].Place) < Map[i].min_limit || * (double *) (Map[i].Place) > Map[i].max_limit )
+        {
+          snprintf(errortext, ET_SIZE, "Error in input parameter %s. Check configuration file. Value should be in [%.2f, %.2f] range.", Map[i].TokenName,Map[i].min_limit ,Map[i].max_limit );
+          error (errortext, 400);
+        }
+      }
+    }
+    else if (Map[i].param_limits == 2)
+    {
+      if (Map[i].Type == 0)
+      {
+        if ( * (int *) (Map[i].Place) < (int) Map[i].min_limit )
+        {
+          snprintf(errortext, ET_SIZE, "Error in input parameter %s. Check configuration file. Value should not be smaller than %d.", Map[i].TokenName, (int) Map[i].min_limit);
+          error (errortext, 400);
+        }
+      }
+      else if (Map[i].Type == 2)
+      {
+        if ( * (double *) (Map[i].Place) < Map[i].min_limit )
+        {
+          snprintf(errortext, ET_SIZE, "Error in input parameter %s. Check configuration file. Value should not be smaller than %2.f.", Map[i].TokenName,Map[i].min_limit);
+          error (errortext, 400);
+        }
+      }
+    }
+    else if (Map[i].param_limits == 3) // Only used for QPs
+    {
+      
+      if (Map[i].Type == 0)
+      {
+        int cur_qp = * (int *) (Map[i].Place);
+        int min_qp = (int) (Map[i].min_limit - bitdepth_qp_scale[0]);
+        int max_qp = (int) Map[i].max_limit;
+        
+        if (( cur_qp < min_qp ) || ( cur_qp > max_qp ))
+        {
+          snprintf(errortext, ET_SIZE, "Error in input parameter %s. Check configuration file. Value should be in [%d, %d] range.", Map[i].TokenName, min_qp, max_qp );
+          error (errortext, 400);
+        }
+      }
+    }
+
+    i++;
+  }
+  return -1;
 }
 
 static int DisplayEncoderParams(Mapping *Map)
@@ -913,7 +1119,7 @@ static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
   }
 #endif
 
-  profile_check(p_Inp);
+  // profile_check(p_Inp);
 
   if(!p_Inp->RDPictureDecision)
   {
@@ -924,5 +1130,34 @@ static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
     p_Inp->RDPictureDirectMode    = 0;
     p_Inp->RDPictureFrameQPPSlice = 0;
     p_Inp->RDPictureFrameQPBSlice = 0;
+  }
+}
+
+static void SetVUIScaleAndTicks(InputParameters *p_Inp, double frame_rate)
+{
+  double frame_rate_integer = (double)ceil( frame_rate );  
+
+  if ( frame_rate_integer != frame_rate )
+  {    
+    // frame rate is a floating-point number
+    // check whether multiplying it with 1001/1000=1.001 brings it closer to frame_rate_integer
+    double new_frame_rate = 1.001 * frame_rate;
+
+    if ( dabs( new_frame_rate - frame_rate_integer ) < dabs( frame_rate - frame_rate_integer ) )
+    {
+      p_Inp->VUI.num_units_in_tick = 1001;
+      p_Inp->VUI.time_scale        = (int)floor( frame_rate_integer * (1000 << 1) ); // two ticks per frame    
+    }
+    else
+    {
+      p_Inp->VUI.num_units_in_tick = 1000;
+      p_Inp->VUI.time_scale        = (int)floor( frame_rate * (p_Inp->VUI.num_units_in_tick << 1) + 0.5 ); // two ticks per frame    
+    }
+  }
+  else
+  {
+    // frame rate is an integer
+    p_Inp->VUI.num_units_in_tick = 1000;
+    p_Inp->VUI.time_scale        = (int)floor( frame_rate * (p_Inp->VUI.num_units_in_tick << 1) ); // two ticks per frame    
   }
 }

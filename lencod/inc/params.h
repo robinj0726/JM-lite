@@ -2,6 +2,7 @@
 #define _PARAMS_H_
 
 #include "types.h"
+#include "vui_params.h"
 #include "frame.h"
 #include "io_video.h"
 
@@ -37,7 +38,7 @@ struct inp_par_enc
   FrameFormat source;                   //!< source related information
   FrameFormat output;                   //!< output related information
 //   int is_interleaved;
-//   int src_resize;                       //!< Control if input sequence will be resized (currently only cropping is supported)
+  int src_resize;                       //!< Control if input sequence will be resized (currently only cropping is supported)
   int src_BitDepthRescale;              //!< Control if input sequence bitdepth should be adjusted
   int yuv_format;                       //!< YUV format (0=4:0:0, 1=4:2:0, 2=4:2:2, 3=4:4:4)
   int intra_upd;                        /*!< For error robustness. 0: no special action. 1: One GOB/frame is intra coded
@@ -49,7 +50,7 @@ struct inp_par_enc
   int slice_argument;                   //!< Argument to the specified slice algorithm
 //   int UseConstrainedIntraPred;          //!< 0: Inter MB pixels are allowed for intra prediction 1: Not allowed
   int  SetFirstAsLongTerm;              //!< Support for temporal considerations for CB plus encoding
-//   int  infile_header;                   //!< If input file has a header set this to the length of the header
+  int  infile_header;                   //!< If input file has a header set this to the length of the header
 //   int  MultiSourceData;
 //   VideoDataFile   input_file2;          //!< Input video file2
 //   VideoDataFile   input_file3;          //!< Input video file3
@@ -86,7 +87,7 @@ struct inp_par_enc
 //   int adaptive_idr_period;
 //   int adaptive_intra_period;            //!< reinitialize start of intra period
 
-//   int start_frame;                      //!< Encode sequence starting from Frame start_frame
+  int start_frame;                      //!< Encode sequence starting from Frame start_frame
 
   int enable_32_pulldown;
 
@@ -409,10 +410,10 @@ struct inp_par_enc
   int RDOQ_CP_MV;
 //   int RDOQ_Fast;
 
-//   int EnableVUISupport;
-//   // VUI parameters
-//   VUIParameters VUI;
-//   // end of VUI parameters
+  int EnableVUISupport;
+  // VUI parameters
+  VUIParameters VUI;
+  // end of VUI parameters
 
 //   // LZL additions
 //   int stdRange;                         //!< 1 - standard range, 0 - full range

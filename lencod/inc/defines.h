@@ -29,6 +29,8 @@ enum {
 #define ET_SIZE 300      //!< size of error text buffer
 #define INIT_FRAME_RATE 30
 
+#define MB_BLOCK_SIZE         16
+
 // Quantization parameter range
 #define MIN_QP          0
 #define MAX_QP          51

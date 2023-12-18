@@ -622,7 +622,7 @@ extern Mapping MapView1[];
 #endif
 
 extern void Configure            (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av[]);
-// extern void get_number_of_frames (InputParameters *p_Inp, VideoDataFile *input_file);
+extern void get_number_of_frames (InputParameters *p_Inp, VideoDataFile *input_file);
 // extern void read_slice_group_info(VideoParameters *p_Vid, InputParameters *p_Inp);
 
 #endif

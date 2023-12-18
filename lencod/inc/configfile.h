@@ -24,15 +24,15 @@ Mapping Map[] = {
     {"IntraProfile",             &cfgparams.IntraProfile,                 0,   0.0,                       1,  0.0,              1.0,                             }, 
     {"LevelIDC",                 &cfgparams.LevelIDC,                     0,   (double) LEVEL_IDC,        0,  0.0,              0.0,                             },
     {"FrameRate",                &cfgparams.source.frame_rate,            2,   (double) INIT_FRAME_RATE,  1,  0.0,            480.0,                             },
-    //{"Enable32Pulldown",         &cfgparams.enable_32_pulldown,           0,   0.0,                       1,  0.0,              2.0,                             },
+    {"Enable32Pulldown",         &cfgparams.enable_32_pulldown,           0,   0.0,                       1,  0.0,              2.0,                             },
     //{"ResendSPS",                &cfgparams.ResendSPS,                    0,   0.0,                       1,  0.0,              3.0,                             },
     //{"StartFrame",               &cfgparams.start_frame,                  0,   0.0,                       2,  0.0,              0.0,                             },
     {"IntraPeriod",              &cfgparams.intra_period,                 0,   0.0,                       2,  0.0,              0.0,                             },
     {"IDRPeriod",                &cfgparams.idr_period,                   0,   0.0,                       2,  0.0,              0.0,                             },
-    //{"IntraDelay",               &cfgparams.intra_delay,                  0,   0.0,                       2,  0.0,              0.0,                             },
+    {"IntraDelay",               &cfgparams.intra_delay,                  0,   0.0,                       2,  0.0,              0.0,                             },
     //{"AdaptiveIntraPeriod",      &cfgparams.adaptive_intra_period,        0,   0.0,                       1,  0.0,              1.0,                             },
     //{"AdaptiveIDRPeriod",        &cfgparams.adaptive_idr_period,          0,   0.0,                       1,  0.0,              2.0,                             },
-    //{"EnableOpenGOP",            &cfgparams.EnableOpenGOP,                0,   0.0,                       1,  0.0,              1.0,                             },
+    {"EnableOpenGOP",            &cfgparams.EnableOpenGOP,                0,   0.0,                       1,  0.0,              1.0,                             },
     //{"EnableIDRGOP",             &cfgparams.EnableIDRGOP,                 0,   0.0,                       1,  0.0,              1.0,                             },    
     {"FramesToBeEncoded",        &cfgparams.no_frames,                    0,   1.0,                       2, -1.0,              0.0,                             },
     //{"QPISlice",                 &cfgparams.qp[I_SLICE],                  0,   24.0,                      3,  (double) MIN_QP,  (double) MAX_QP,                 },
@@ -47,7 +47,7 @@ Mapping Map[] = {
     //{"ChangeQPSP",               &cfgparams.qp2off[SP_SLICE],             0,   0.0,                       0,  (double) -MAX_QP,  (double) MAX_QP,                },
     //{"ChangeQPSI",               &cfgparams.qp2off[SI_SLICE],             0,   0.0,                       0,  (double) -MAX_QP,  (double) MAX_QP,                },
     {"QPSP2Slice",               &cfgparams.qpsp,                         0,   0.0,                       3,  (double) MIN_QP,  (double) MAX_QP,                 },
-    //{"FrameSkip",                &cfgparams.frame_skip,                   0,   0.0,                       2,  0.0,              0.0,                             },
+    {"FrameSkip",                &cfgparams.frame_skip,                   0,   0.0,                       2,  0.0,              0.0,                             },
     //{"DisableSubpelME",          &cfgparams.DisableSubpelME[0],           0,   0.0,                       1,  0.0,              1.0,                             },
     {"SearchRange",              &cfgparams.search_range[0],              0,   16.0,                      2,  0.0,              0.0,                             },
     //{"NumberReferenceFrames",    &cfgparams.num_ref_frames,               0,   1.0,                       1,  0.0,             16.0,                             },
@@ -60,7 +60,7 @@ Mapping Map[] = {
 #endif
     //{"Log2MaxFNumMinus4",        &cfgparams.Log2MaxFNumMinus4,            0,   0.0,                       1, -1.0,             12.0,                             },
     //{"Log2MaxPOCLsbMinus4",      &cfgparams.Log2MaxPOCLsbMinus4,          0,   2.0,                       1, -1.0,             12.0,                             },
-    //{"GenerateMultiplePPS",      &cfgparams.GenerateMultiplePPS,          0,   0.0,                       1,  0.0,              1.0,                             },
+    {"GenerateMultiplePPS",      &cfgparams.GenerateMultiplePPS,          0,   0.0,                       1,  0.0,              1.0,                             },
     //{"ResendPPS",                &cfgparams.ResendPPS,                    0,   0.0,                       1,  0.0,              1.0,                             },
     //{"SendAUD",                  &cfgparams.SendAUD,                      0,   0.0,                       1,  0.0,              3.0,                             },
     {"SourceWidth",              &cfgparams.source.width[0],              0,   176.0,                     2,  0.0,              0.0,                             },
@@ -88,7 +88,7 @@ Mapping Map[] = {
 
     //{"ProcessInput",             &cfgparams.ProcessInput,                 0,   0.0,                       1,  0.0,              4.0,                             },    
     //{"DispPQPOffset",            &cfgparams.DispPQPOffset,                0,   0.0,                       0,-51.0,             51.0,                             },
-    //{"NumberBFrames",            &cfgparams.NumberBFrames,                0,   0.0,                       2,  0.0,              0.0,                             },
+    {"NumberBFrames",            &cfgparams.NumberBFrames,                0,   0.0,                       2,  0.0,              0.0,                             },
     //{"PReplaceBSlice",           &cfgparams.PReplaceBSlice,               0,   0.0,                       1,  0.0,              1.0,                             },
     {"BRefPicQPOffset",          &cfgparams.qpBRSOffset,                  0,   0.0,                       0,-51.0,             51.0,                             },
     //{"DirectModeType",           &cfgparams.direct_spatial_mv_pred_flag,  0,   0.0,                       1,  0.0,              1.0,                             },
@@ -175,7 +175,7 @@ Mapping Map[] = {
 
     {"IntraBottom",              &cfgparams.IntraBottom,                  0,   0.0,                       1,  0.0,              1.0,                             },
 
-    //{"NumFramesInELayerSubSeq",  &cfgparams.NumFramesInELSubSeq,          0,   0.0,                       2,  0.0,              0.0,                             },
+    {"NumFramesInELayerSubSeq",  &cfgparams.NumFramesInELSubSeq,          0,   0.0,                       2,  0.0,              0.0,                             },
     //{"RandomIntraMBRefresh",     &cfgparams.RandomIntraMBRefresh,         0,   0.0,                       2,  0.0,              0.0,                             },
     //{"WeightedPrediction",       &cfgparams.WeightedPrediction,           0,   0.0,                       1,  0.0,              1.0,                             },
     //{"WeightedBiprediction",     &cfgparams.WeightedBiprediction,         0,   0.0,                       1,  0.0,              2.0,                             },
@@ -206,7 +206,7 @@ Mapping Map[] = {
     //{"ReferenceReorder",         &cfgparams.ReferenceReorder,             0,   0.0,                       1,  0.0,              2.0,                             },
     //{"EnableReorderBslice",      &cfgparams.EnableReorderBslice,          0,   0.0,                       1,  0.0,              1.0,                             },
     //{"UseDistortionReorder",     &cfgparams.UseDistortionReorder,         0,   0.0,                       1,  0.0,              1.0,                             },
-    //{"PocMemoryManagement",      &cfgparams.PocMemoryManagement,          0,   0.0,                       1,  0.0,              2.0,                             },
+    {"PocMemoryManagement",      &cfgparams.PocMemoryManagement,          0,   0.0,                       1,  0.0,              2.0,                             },
 
 
     //{"DFParametersFlag",         &cfgparams.DFSendParameters,             0,   0.0,                       1,  0.0,              1.0,                             },
@@ -325,7 +325,7 @@ Mapping Map[] = {
 // New Input bit-depth entries
     //{"SourceBitDepthLuma",       &cfgparams.source.bit_depth[0],          0,   8.0,                       1,  8.0,             14.0,                             },
     //{"SourceBitDepthChroma",     &cfgparams.source.bit_depth[1],          0,   8.0,                       1,  8.0,             14.0,                             },
-    //{"SourceBitDepthRescale",    &cfgparams.src_BitDepthRescale,          0,   0.0,                       1,  0.0,              1.0,                             },
+    {"SourceBitDepthRescale",    &cfgparams.src_BitDepthRescale,          0,   0.0,                       1,  0.0,              1.0,                             },
 // Old variables replaced from BitDepthLuma and BitDepthChroma. Considered only if SourceBitDepthRescale is 1.
     //{"OutputBitDepthLuma",       &cfgparams.output.bit_depth[0],          0,   8.0,                       1,  8.0,             14.0,                             },
     //{"OutputBitDepthChroma",     &cfgparams.output.bit_depth[1],          0,   8.0,                       1,  8.0,             14.0,                             },

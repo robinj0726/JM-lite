@@ -7,22 +7,194 @@
 
 static void PatchInp                (VideoParameters *p_Vid, InputParameters *p_Inp);
 
+void JMHelpExit (void)
+{
+  fprintf( stderr, "\n   lencod [-h] [-d defenc.cfg] {[-f curenc1.cfg]...[-f curencN.cfg]}"
+    " {[-p EncParam1=EncValue1]..[-p EncParamM=EncValueM]}\n\n"
+    "## Parameters\n\n"
+
+    "## Options\n"
+    "   -h :  prints function usage\n"
+    "   -d :  use <defenc.cfg> as default file for parameter initializations.\n"
+    "         If not used then file defaults to encoder.cfg in local directory.\n"
+    "   -f :  read <curencM.cfg> for reseting selected encoder parameters.\n"
+    "         Multiple files could be used that set different parameters\n"
+    "   -p :  Set parameter <EncParamM> to <EncValueM>.\n"
+    "         See default encoder.cfg file for description of all parameters.\n\n"
+
+    "## Supported video file formats\n"
+    "   RAW:  .yuv.,rgb ->  P444 - Planar, 4:4:4 \n"
+    "                       P422 - Planar, 4:2:2 \n"
+    "                       P420 - Planar, 4:2:0  \n"
+    "                       P400 - Planar, 4:0:0 \n"
+    "                       I444 - Packed, 4:4:4 \n"
+    "                       I422 - Packed, 4:2:2 \n"
+    "                       I420 - Packed, 4:2:0 \n"
+    "                       IYUV/YV12 - Planar, 4:2:0 \n"
+    "                       IYU1 - Packed, 4:2:0 (UYYVYY) \n"
+    "                       IYU2 - Packed, 4:4:4 (UYV) \n"
+    "                       YUY2 - Packed, 4:2:2 (YUYV) \n"
+    "                       YUV  - Packed, 4:4:4 (YUV) \n\n"
+
+    "## Examples of usage:\n"
+    "   lencod\n"
+    "   lencod  -h\n"
+    "   lencod  -d default.cfg\n"
+    "   lencod  -f curenc1.cfg\n"
+    "   lencod  -f curenc1.cfg -p InputFile=\"e:\\data\\container_qcif_30.yuv\" -p SourceWidth=176 -p SourceHeight=144\n"
+    "   lencod  -f curenc1.cfg -p FramesToBeEncoded=30 -p QPISlice=28 -p QPPSlice=28 -p QPBSlice=30\n");
+
+  exit(-1);
+}
+
 void Configure (VideoParameters *p_Vid, InputParameters *p_Inp, int ac, char *av[])
 {
   char *content = NULL;
+  int CLcount, ContentLen, NumberParams;
   char *filename=DEFAULTCONFIGFILENAME;
+
+  if (ac==2)
+  {
+    if (0 == strncmp (av[1], "-v", 2))
+    {
+      printf("JM-" VERSION "\n");
+      exit(0);
+    }
+    if (0 == strncmp (av[1], "-V", 2))
+    {
+      printf("JM " JM ": compiled " __DATE__ " " __TIME__ "\n");
+#if ( IMGTYPE == 0 )
+      printf("support for more than 8 bits/pel disabled\n");
+#endif
+#if ( ENABLE_FIELD_CTX == 0 )
+      printf("CABAC field coding disabled\n");
+#endif
+#if ( ENABLE_HIGH444_CTX == 0 )
+      printf("CABAC High 4:4:4 profile coding disabled\n");
+#endif
+      exit(0);
+    }
+
+    if (0 == strncmp (av[1], "-h", 2))
+    {
+      JMHelpExit();
+    }
+  }
 
   memset (&cfgparams, 0, sizeof (InputParameters));
   //Set default parameters.
   printf ("Setting Default Parameters...\n");
   InitParams(Map);
 
+  // Process default config file
+  CLcount = 1;
+
+  if (ac>=3)
+  {
+    if (0 == strncmp (av[1], "-d", 2))
+    {
+      filename=av[2];
+      CLcount = 3;
+    }
+    if (0 == strncmp (av[1], "-h", 2))
+    {
+      JMHelpExit();
+    }
+  }
   printf ("Parsing Configfile %s", filename);
   content = GetConfigFileContent (filename);
-  // if (NULL==content)
-  //   error (errortext, 300);
-  ParseContent (p_Inp, Map, NULL, 0);
+  if (NULL==content)
+    error (errortext, 300);
+  ParseContent (p_Inp, Map, content, (int) strlen(content));
   printf ("\n");
+  free (content);
+
+  // Parse the command line
+
+  while (CLcount < ac)
+  {
+    if (0 == strncmp (av[CLcount], "-h", 2))
+    {
+      JMHelpExit();
+    }
+
+    if (0 == strncasecmp (av[CLcount], "-f", 2))  // A file parameter?
+    {
+      content = GetConfigFileContent (av[CLcount+1]);
+      if (NULL==content)
+        error (errortext, 300);
+      printf ("Parsing Configfile %s", av[CLcount+1]);
+      ParseContent (p_Inp, Map, content, (int) strlen (content));
+      printf ("\n");
+      free (content);
+      CLcount += 2;
+    } 
+    else
+    {
+      if (0 == strncasecmp (av[CLcount], "-p", 2))  // A config change?
+      {
+        // Collect all data until next parameter (starting with -<x> (x is any character)),
+        // put it into content, and parse content.
+
+        ++CLcount;
+        ContentLen = 0;
+        NumberParams = CLcount;
+
+        // determine the necessary size for content
+        while (NumberParams < ac && av[NumberParams][0] != '-')
+          ContentLen += (int) strlen (av[NumberParams++]);        // Space for all the strings
+        ContentLen += 1000;                     // Additional 1000 bytes for spaces and \0s
+
+
+        if ((content = malloc (ContentLen))==NULL) no_mem_exit("Configure: content");;
+        content[0] = '\0';
+
+        // concatenate all parameters identified before
+
+        while (CLcount < NumberParams)
+        {
+          char *source = &av[CLcount][0];
+          char *destin = &content[(int) strlen (content)];
+
+          while (*source != '\0')
+          {
+            if (*source == '=')  // The Parser expects whitespace before and after '='
+            {
+              *destin++=' '; *destin++='='; *destin++=' ';  // Hence make sure we add it
+            } 
+            else
+              *destin++=*source;
+            source++;
+          }
+          *destin = '\0';
+          CLcount++;
+        }
+        printf ("Parsing command line string '%s'", content);
+        ParseContent (p_Inp, Map, content, (int) strlen(content));
+        free (content);
+        printf ("\n");
+      }
+      else
+      {
+        snprintf (errortext, ET_SIZE, "Error in command line, ac %d, around string '%s', missing -f or -p parameters?", CLcount, av[CLcount]);
+        error (errortext, 300);
+      }
+    }
+  }
+  printf ("\n");
+
+#if (MVC_EXTENSION_ENABLE)
+  if (p_Inp->num_of_views > 1)
+  {
+    printf ("Parsing Second View Configfile %s", p_Inp->View1ConfigName );
+    content = GetConfigFileContent ( p_Inp->View1ConfigName );
+    if (NULL==content)
+      error (errortext, 300);
+    ParseContent (p_Inp, MapView1, content, (int) strlen(content));
+    printf ("\n");
+    free (content);
+  }
+#endif
 
   PatchInp(p_Vid, p_Inp);
 
@@ -55,11 +227,702 @@ static int DisplayEncoderParams(Mapping *Map)
 
 static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
 {
+  int i;
+  int bitdepth_qp_scale[3];
+
+  if (p_Inp->src_BitDepthRescale)
+  {
+    bitdepth_qp_scale [0] = 6*(p_Inp->output.bit_depth[0] - 8);
+    bitdepth_qp_scale [1] = 6*(p_Inp->output.bit_depth[1] - 8);
+    bitdepth_qp_scale [2] = 6*(p_Inp->output.bit_depth[2] - 8);
+  }
+  else
+  {
+    bitdepth_qp_scale [0] = 6*(p_Inp->source.bit_depth[0] - 8);
+    bitdepth_qp_scale [1] = 6*(p_Inp->source.bit_depth[1] - 8);
+    bitdepth_qp_scale [2] = 6*(p_Inp->source.bit_depth[2] - 8);
+  }
+
+  TestEncoderParams(Map, bitdepth_qp_scale);
+
+  if (p_Inp->source.frame_rate == 0.0)
+    p_Inp->source.frame_rate = (double) INIT_FRAME_RATE;
+
   ParseVideoType(&p_Inp->input_file1);
   ParseFrameNoFormatFromString (&p_Inp->input_file1);
 
-  // (0:Disable Display of Encoder Params 1: Enable)
-  p_Inp->DisplayEncParams = 1; 
-  strcpy(p_Inp->input_file1.fname, "foreman_part_qcif.yuv");
+#if (MVC_EXTENSION_ENABLE)
+  if ( p_Inp->num_of_views == 2 )
+  {
+    ParseVideoType(&p_Inp->input_file2);
+    ParseFrameNoFormatFromString (&p_Inp->input_file2);
+  }
+#endif
 
+    if(p_Inp->source.bit_depth[0] >8)
+    {
+      if(!IMGTYPE)
+      {
+        error("IMGTYPE should be 1 when bitdepth is greater than 8", 600);
+      }
+    }
+  // Read resolution from file name
+  if (p_Inp->source.width[0] == 0 || p_Inp->source.height[0] == 0)
+  {
+    if (ParseSizeFromString (&p_Inp->input_file1, &(p_Inp->source.width[0]), &(p_Inp->source.height[0]), &(p_Inp->source.frame_rate)) == 0)
+    {
+      snprintf(errortext, ET_SIZE, "File name does not contain resolution information.");    
+      error (errortext, 500);
+    }
+  }
+
+#if (!ENABLE_FIELD_CTX)
+  if ( (p_Inp->PicInterlace || p_Inp->MbInterlace) && p_Inp->symbol_mode )
+  {
+    snprintf(errortext, ET_SIZE, "Recompile with ENABLE_FIELD_CTX set to one to enable interlaced coding with CABAC.");    
+    error (errortext, 500);
+  }
+#endif
+
+#if (!ENABLE_HIGH444_CTX)
+  if ( (p_Inp->ProfileIDC == FREXT_Hi444 || p_Inp->ProfileIDC == NO_PROFILE )&& p_Inp->symbol_mode )
+  {
+    snprintf(errortext, ET_SIZE, "Recompile with ENABLE_HIGH444_CTX set to one to enable the High 4:4:4 Profile with CABAC.");    
+    error (errortext, 500);
+  }
+#endif
+
+  // Currently to simplify things, lets copy everything (overwrites yuv_format)
+  p_Inp->input_file1.format = p_Inp->source;
+
+
+  if (p_Inp->idr_period && p_Inp->intra_delay && p_Inp->idr_period <= p_Inp->intra_delay)
+  {
+    snprintf(errortext, ET_SIZE, " IntraDelay cannot be larger than or equal to IDRPeriod.");
+    error (errortext, 500);
+  }
+
+  // some contraints for IntraPeriod, IDRPeriod, EnableIDRGOP, and NumberBFrames
+  if ( p_Inp->idr_period > 0 && (p_Inp->NumberBFrames + 1 + p_Inp->intra_delay) > p_Inp->idr_period )
+  {
+    snprintf(errortext, ET_SIZE, " Setting NumberBFrames = IDRPeriod - 1 - IntraDelay.");
+    p_Inp->NumberBFrames = p_Inp->idr_period - 1 - p_Inp->intra_delay;
+    if ( p_Inp->NumberBFrames < 0 )
+    {
+      p_Inp->NumberBFrames = p_Inp->idr_period - 1;
+      p_Inp->intra_delay = 0;
+    }
+    if ( p_Inp->HierarchicalCoding )
+    {
+      p_Inp->HierarchicalCoding = 2;
+    }
+  }
+  if ( p_Inp->intra_period > 0 && (p_Inp->NumberBFrames + 1 + p_Inp->intra_delay) > p_Inp->intra_period )
+  {
+    snprintf(errortext, ET_SIZE, " Setting NumberBFrames = IntraPeriod - 1 - IntraDelay.");
+    p_Inp->NumberBFrames = p_Inp->intra_period - 1 - p_Inp->intra_delay;
+    if ( p_Inp->NumberBFrames < 0 )
+    {
+      p_Inp->NumberBFrames = p_Inp->intra_period - 1;
+      p_Inp->intra_delay = 0;
+    }
+    if ( p_Inp->HierarchicalCoding )
+    {
+      p_Inp->HierarchicalCoding = 2;
+    }
+  }
+  // Added to avoid encoding problems with List 0 being empty
+  if (p_Inp->intra_delay && p_Inp->NumberBFrames > 0 && p_Inp->EnableOpenGOP)
+    p_Inp->PocMemoryManagement = 1;
+
+  // Let us set up p_Inp->jumpd from frame_skip and NumberBFrames
+  p_Inp->jumpd = (p_Inp->NumberBFrames + 1) * (p_Inp->frame_skip + 1) - 1;
+
+
+  updateOutFormat(p_Inp);
+  // SEI/VUI 3:2 pulldown support
+  if ( p_Inp->SEIVUI32Pulldown && p_Inp->enable_32_pulldown )
+  {
+    snprintf(errortext, ET_SIZE, "SEIVUI32Pulldown and Enable32Pulldown cannot be set at the same time.");
+    error (errortext, 500);
+  }
+  if ( p_Inp->SEIVUI32Pulldown )
+  {    
+    set_jm_vui_params( p_Inp );
+  }
+
+  if (p_Inp->no_frames == -1)
+  {
+    OpenFiles(&p_Inp->input_file1);
+    get_number_of_frames (p_Inp, &p_Inp->input_file1);
+    CloseFiles(&p_Inp->input_file1);
+  }
+
+  if (p_Inp->no_frames < 1)
+  {      
+    snprintf(errortext, ET_SIZE, "Not enough frames to encode (%d)", p_Inp->no_frames);
+    error (errortext, 500);
+  }
+  
+  // Check IntraProfile settings
+  if (p_Inp->IntraProfile)
+  {
+    if(p_Inp->NumberBFrames)
+    {
+      snprintf(errortext, ET_SIZE, "Use of B slices not supported with Intra Profiles. Set NumberBFrames to 0.");
+      error (errortext, 400);
+    }
+
+    if (p_Inp->PocMemoryManagement)
+    {
+      printf("Warning: PocMemoryManagement not supported for Intra Profiles. Process Disabled.\n");
+      p_Inp->PocMemoryManagement = 0;
+    }
+    if (p_Inp->ReferenceReorder)
+    {
+      printf("Warning: ReferenceReorder not supported for Intra Profiles. Process Disabled.\n");
+      p_Inp->ReferenceReorder = 0;
+    }    
+  }
+
+  // Direct Mode consistency check
+  if(p_Inp->NumberBFrames && p_Inp->direct_spatial_mv_pred_flag != DIR_SPATIAL && p_Inp->direct_spatial_mv_pred_flag != DIR_TEMPORAL)
+  {
+    snprintf(errortext, ET_SIZE, "Unsupported direct mode=%d, use TEMPORAL=0 or SPATIAL=1", p_Inp->direct_spatial_mv_pred_flag);
+    error (errortext, 400);
+  }
+
+  if (p_Inp->PicInterlace>0 || p_Inp->MbInterlace>0)
+  {
+    if (p_Inp->directInferenceFlag==0)
+      printf("\nWarning: DirectInferenceFlag set to 1 due to interlace coding.");
+    p_Inp->directInferenceFlag = 1;
+  }
+
+  if(p_Inp->PicInterlace > 0 || p_Inp->MbInterlace > 0)
+  {
+    printf("\nWarning: WPMCPredicions is set to 0 due to interlace coding.\n");
+    p_Inp->WPMCPrecision = 0;
+  }
+#if TRACE
+  if ((int) strlen (p_Inp->TraceFile) > 0 && (p_Enc->p_trace = fopen(p_Inp->TraceFile,"w"))==NULL)
+  {
+    snprintf(errortext, ET_SIZE, "Error open file %s", p_Inp->TraceFile);
+    error (errortext, 500);
+  }
+#endif
+
+  
+  
+  if ((p_Inp->slice_mode == 1)&&(p_Inp->MbInterlace != 0))
+  {
+    if ((p_Inp->slice_argument & 0x01)!=0)
+    {
+      fprintf ( stderr, "Warning: slice border within macroblock pair. ");
+      if (p_Inp->slice_argument > 1)
+      {
+        p_Inp->slice_argument--;
+      }
+      else
+      {
+        p_Inp->slice_argument++;
+      }
+      fprintf ( stderr, "Using %d MBs per slice.\n", p_Inp->slice_argument);
+    }
+  }  
+
+  if (p_Inp->WPMCPrecision && (p_Inp->RDPictureDecision != 1 || p_Inp->GenerateMultiplePPS != 1) )
+  {
+    snprintf(errortext, ET_SIZE, "WPMCPrecision requires both RDPictureDecision=1 and GenerateMultiplePPS=1.\n");
+    error (errortext, 400);
+  }
+  p_Inp->num_ref_frames_org = p_Inp->num_ref_frames;
+  p_Inp->P_List0_refs_org[0] = p_Inp->P_List0_refs[0];
+  p_Inp->B_List0_refs_org[0] = p_Inp->B_List0_refs[0];
+  p_Inp->B_List1_refs_org[0] = p_Inp->B_List1_refs[0];
+  p_Inp->P_List0_refs_org[1] = p_Inp->P_List0_refs[1];
+  p_Inp->B_List0_refs_org[1] = p_Inp->B_List0_refs[1];
+  p_Inp->B_List1_refs_org[1] = p_Inp->B_List1_refs[1];
+
+  if (p_Inp->WPMCPrecision && p_Inp->WPMCPrecFullRef && p_Inp->num_ref_frames < 16 )
+  {
+    p_Inp->num_ref_frames++;
+    if ( p_Inp->P_List0_refs[0] )
+    {
+      p_Inp->P_List0_refs[0]++;
+    }
+    else
+    {
+      p_Inp->P_List0_refs[0] = p_Inp->num_ref_frames;
+    }    
+    if ( p_Inp->B_List0_refs[0] )
+    {
+      p_Inp->B_List0_refs[0]++;
+    }
+    else
+    {
+      p_Inp->B_List0_refs[0] = p_Inp->num_ref_frames;
+    }
+    if ( p_Inp->B_List1_refs[0] )
+    {
+      p_Inp->B_List1_refs[0]++;
+    }
+    else
+    {
+      p_Inp->B_List1_refs[0] = p_Inp->num_ref_frames;
+    }
+    // if ( p_Inp->SepViewInterSearch )
+    {
+      if ( p_Inp->P_List0_refs[1] )
+      {
+        p_Inp->P_List0_refs[1]++;
+      }
+      else
+      {
+        p_Inp->P_List0_refs[1] = p_Inp->num_ref_frames;
+      }
+      if ( p_Inp->B_List0_refs[1] )
+      {
+        p_Inp->B_List0_refs[1]++;
+      }
+      else
+      {
+        p_Inp->B_List0_refs[1] = p_Inp->num_ref_frames;
+      }
+      if ( p_Inp->B_List1_refs[1] )
+      {
+        p_Inp->B_List1_refs[1]++;
+      }
+      else
+      {
+        p_Inp->B_List1_refs[1] = p_Inp->num_ref_frames;
+      }
+    }
+  }
+  else if ( p_Inp->WPMCPrecision && p_Inp->WPMCPrecFullRef )
+  {
+    snprintf(errortext, ET_SIZE, "WPMCPrecFullRef requires NumberReferenceFrames < 16.\n");
+    error (errortext, 400);
+  }
+
+  if (p_Inp->PicInterlace) 
+  {
+    if (p_Inp->ReferenceReorder == 2)
+    {
+      snprintf(errortext, ET_SIZE, "ReferenceReorder = 2 are not supported with field encoding\n");
+      error (errortext, 400);
+    }
+    if (p_Inp->PocMemoryManagement == 2)
+    {
+      snprintf(errortext, ET_SIZE, "PocMemoryManagement = 2 is not supported with field encoding\n");
+      error (errortext, 400);
+    }
+  }
+
+  if ( p_Inp->ReferenceReorder && p_Inp->MbInterlace )
+  {
+    snprintf(errortext, ET_SIZE, "ReferenceReorder is not supported with MBAFF\n");
+    error (errortext, 400);
+  }
+
+  if ( p_Inp->SetFirstAsLongTerm && ( p_Inp->ReferenceReorder != 0 ) )
+  {
+    printf("SetFirstAsLongTerm is set. ReferenceReorder is not supported and therefore disabled. \n");
+    p_Inp->ReferenceReorder = 0;
+  }
+
+  if (p_Inp->PocMemoryManagement && p_Inp->MbInterlace )
+  {
+    snprintf(errortext, ET_SIZE, "PocMemoryManagement is not supported with MBAFF\n");
+    error (errortext, 400);
+  }
+
+  if(p_Inp->MbInterlace && p_Inp->RDPictureDecision && p_Inp->GenerateMultiplePPS)
+  {
+    snprintf(errortext, ET_SIZE, "RDPictureDecision+GenerateMultiplePPS not supported with MBAFF. RDPictureDecision therefore disabled\n");
+    p_Inp->RDPictureDecision = 0;
+  }
+
+  if ((!p_Inp->rdopt)&&(p_Inp->MbInterlace==2))
+  {
+    snprintf(errortext, ET_SIZE, "MB AFF is not compatible with non-rd-optimized coding.");
+    error (errortext, 500);
+  }
+
+  // Tian Dong: May 31, 2002
+  // The number of frames in one sub-seq in enhanced layer should not exceed
+  // the number of reference frame number.
+  if ( p_Inp->NumFramesInELSubSeq > p_Inp->num_ref_frames || p_Inp->NumFramesInELSubSeq < 0 )
+  {
+    snprintf(errortext, ET_SIZE, "NumFramesInELSubSeq (%d) is out of range [0,%d).", p_Inp->NumFramesInELSubSeq, p_Inp->num_ref_frames);
+    error (errortext, 500);
+  }
+  // Tian Dong: Enhanced GOP is not supported in bitstream mode. September, 2002
+  if ( p_Inp->NumFramesInELSubSeq > 0 )
+  {
+    snprintf(errortext, ET_SIZE, "Enhanced GOP is not properly supported yet.");
+    error (errortext, 500);
+  }
+  // Tian Dong (Sept 2002)
+  // The AFF is not compatible with spare picture for the time being.
+  if ((p_Inp->PicInterlace || p_Inp->MbInterlace) && p_Inp->SparePictureOption == TRUE)
+  {
+    snprintf(errortext, ET_SIZE, "AFF is not compatible with spare picture.");
+    error (errortext, 500);
+  }
+
+  // Only the RTP mode is compatible with spare picture for the time being.
+  if (p_Inp->of_mode != PAR_OF_RTP && p_Inp->SparePictureOption == TRUE)
+  {
+    snprintf(errortext, ET_SIZE, "Only RTP output mode is compatible with spare picture features.");
+    error (errortext, 500);
+  }
+
+  if( (p_Inp->WeightedPrediction > 0 || p_Inp->WeightedBiprediction > 0) && (p_Inp->MbInterlace))
+  {
+    snprintf(errortext, ET_SIZE, "Weighted prediction coding is not supported for MB AFF currently.");
+    error (errortext, 500);
+  }
+  if( (p_Inp->WeightedPrediction > 0 || p_Inp->WeightedBiprediction > 0) && (p_Inp->yuv_format==3))
+  {
+    snprintf(errortext, ET_SIZE, "Weighted prediction coding is not supported for 4:4:4 encoding.");
+    error (errortext, 500);
+  }
+  if ( p_Inp->NumFramesInELSubSeq > 0 && p_Inp->WeightedPrediction > 0)
+  {
+    snprintf(errortext, ET_SIZE, "Enhanced GOP is not supported in weighted prediction coding mode yet.");
+    error (errortext, 500);
+  }
+
+  // Rate control
+  if(p_Inp->RCEnable)
+  {
+    if ( p_Inp->RCUpdateMode == RC_MODE_1 && 
+      !( (p_Inp->intra_period == 1 || p_Inp->idr_period == 1 || p_Inp->BRefPictures == 2 ) && !p_Inp->NumberBFrames ) )
+    {
+      snprintf(errortext, ET_SIZE, "Use RCUpdateMode = 1 only for all intra or all B-slice coding.");
+      error (errortext, 500);
+    }
+    if ( (p_Inp->RCUpdateMode == RC_MODE_0 || p_Inp->RCUpdateMode == RC_MODE_2 || p_Inp->RCUpdateMode == RC_MODE_3) && 
+      (p_Inp->PReplaceBSlice && p_Inp->NumberBFrames ) )
+    {
+      snprintf(errortext, ET_SIZE, "PReplaceBSlice is not supported with RCUpdateMode=0,2,3.");
+      error (errortext, 500);
+    }
+
+    if ( p_Inp->BRefPictures == 2 && p_Inp->intra_period == 0 && p_Inp->RCUpdateMode != RC_MODE_1 )
+    {
+      snprintf(errortext, ET_SIZE, "Use RCUpdateMode = 1 for all B-slice coding.");
+      error (errortext, 500);
+    }
+
+    if ( p_Inp->HierarchicalCoding && p_Inp->RCUpdateMode != RC_MODE_2 && p_Inp->RCUpdateMode != RC_MODE_3 )
+    {
+      snprintf(errortext, ET_SIZE, "Use RCUpdateMode = 2 or 3 for hierarchical B-picture coding.");
+      error (errortext, 500);
+    }
+    if ( (p_Inp->RCUpdateMode != RC_MODE_1) && (p_Inp->intra_period == 1) )
+    {
+      snprintf(errortext, ET_SIZE, "Use RCUpdateMode = 1 for all intra coding.");
+      error (errortext, 500);
+    }
+  }
+
+  if ((p_Inp->NumberBFrames)&&(p_Inp->BRefPictures)&&(p_Inp->idr_period)&&(p_Inp->pic_order_cnt_type!=0))
+  {
+    error("Stored B pictures combined with IDR pictures only supported in Picture Order Count type 0\n",-1000);
+  }
+
+  if( !p_Inp->direct_spatial_mv_pred_flag && p_Inp->num_ref_frames<2 && p_Inp->NumberBFrames >0)
+    error("temporal direct needs at least 2 ref frames\n",-1000);
+
+#if (MVC_EXTENSION_ENABLE)
+  if (p_Inp->SepViewInterSearch && p_Inp->SearchMode[1] == FAST_FULL_SEARCH && p_Inp->MEErrorMetric[F_PEL] > ERROR_SSE)
+  {
+    snprintf(errortext, ET_SIZE, "\nOnly SAD and SSE distortion computation supported with Fast Full Search.");
+    error (errortext, 500);
+  }
+  else
+#endif
+  if (p_Inp->SearchMode[0] == FAST_FULL_SEARCH && p_Inp->MEErrorMetric[F_PEL] > ERROR_SSE)
+  {
+    snprintf(errortext, ET_SIZE, "\nOnly SAD and SSE distortion computation supported with Fast Full Search.");
+    error (errortext, 500);
+  }
+
+  if (p_Inp->rdopt == 0)
+  {
+    if (p_Inp->DisableSubpelME[0] || p_Inp->DisableSubpelME[1])
+    {
+      if (p_Inp->MEErrorMetric[F_PEL] != p_Inp->ModeDecisionMetric)
+      {
+        snprintf(errortext, ET_SIZE, "\nLast refinement level (FPel) distortion not the same as Mode decision distortion.\nPlease update MEDistortionFPel (%d) and/or  MDDistortion(%d).", p_Inp->MEErrorMetric[F_PEL], p_Inp->ModeDecisionMetric);
+        error (errortext, 500);
+      }
+    }
+    else if (p_Inp->MEErrorMetric[Q_PEL] != p_Inp->ModeDecisionMetric)
+    {
+      snprintf(errortext, ET_SIZE, "\nLast refinement level (QPel) distortion not the same as Mode decision distortion.\nPlease update MEDistortionQPel (%d) and/or  MDDistortion(%d).", p_Inp->MEErrorMetric[Q_PEL], p_Inp->ModeDecisionMetric);
+      error (errortext, 500);
+    }
+  }
+  // frext
+  if(p_Inp->Transform8x8Mode && p_Inp->sp_periodicity /*SP-frames*/)
+  {
+    snprintf(errortext, ET_SIZE, "\nThe new 8x8 mode is not implemented for sp-frames.");
+    error (errortext, 500);
+  }
+
+  if (p_Inp->DisableIntra4x4 == 1 && p_Inp->DisableIntra16x16 == 1 && p_Inp->EnableIPCM == 0 && p_Inp->Transform8x8Mode == 0)
+  {
+    snprintf(errortext, ET_SIZE, "\nAt least one intra prediction mode needs to be enabled.");
+    error (errortext, 500);
+  }
+
+  if (p_Inp->NumberBFrames && ((p_Inp->BiPredMotionEstimation) && (p_Inp->search_range[0] < p_Inp->BiPredMESearchRange[0])))
+  {
+    snprintf(errortext, ET_SIZE, "\nBiPredMESearchRange must be smaller or equal SearchRange.");
+    error (errortext, 500);
+  }
+#if (MVC_EXTENSION_ENABLE)
+  if ( p_Inp->SepViewInterSearch )
+  {
+    if (p_Inp->NumberBFrames && ((p_Inp->BiPredMotionEstimation) && (p_Inp->search_range[1] < p_Inp->BiPredMESearchRange[1])))
+    {
+      snprintf(errortext, ET_SIZE, "\nView1BiPredMESearchRange must be smaller or equal View1SearchRange.");
+      error (errortext, 500);
+    }
+  }
+#endif
+
+  if (p_Inp->BiPredMotionEstimation)
+  {
+    p_Inp->BiPredMotionEstimation = 0;
+    for (i = 0 ; i < 4; i++)
+      p_Inp->BiPredMotionEstimation |= p_Inp->BiPredSearch[i];
+  }
+  else
+  {
+    for (i = 0 ; i < 4; i++)
+      p_Inp->BiPredSearch[i] = 0;
+  }
+
+  // check consistency
+  if ( p_Inp->ChromaMEEnable && !(p_Inp->ChromaMCBuffer) ) 
+  {
+    snprintf(errortext, ET_SIZE, "\nChromaMCBuffer must be set to 1 if ChromaMEEnable is set.");
+    error (errortext, 500);
+  }
+
+  if ( p_Inp->ChromaMEEnable && p_Inp->yuv_format ==  YUV400) 
+  {
+    fprintf(stderr, "Warning: ChromaMEEnable cannot be used with monochrome color format, disabling ChromaMEEnable.\n");
+    p_Inp->ChromaMEEnable = FALSE;
+  }
+
+  if ( (p_Inp->ChromaMCBuffer == 0) && (( p_Inp->yuv_format ==  YUV444) && (!p_Inp->separate_colour_plane_flag)) )
+  {
+    fprintf(stderr, "Warning: Enabling ChromaMCBuffer for 4:4:4 combined color coding.\n");
+    p_Inp->ChromaMCBuffer = 1;
+  }
+
+  if (p_Inp->EnableOpenGOP && p_Inp->ReferenceReorder != 1)
+  {
+    printf("If OpenGOP is enabled than ReferenceReorder is set to 1. \n");
+  }
+
+  if (p_Inp->EnableOpenGOP)
+    p_Inp->ReferenceReorder = 1;
+
+  if (p_Inp->SearchMode[0] != EPZS 
+#if (MVC_EXTENSION_ENABLE)
+    && (!p_Inp->SepViewInterSearch || p_Inp->SearchMode[1] != EPZS )
+#endif
+    )
+    p_Inp->EPZSSubPelGrid = 0;
+
+  if (p_Inp->redundant_pic_flag)
+  {
+    if (p_Inp->PicInterlace || p_Inp->MbInterlace)
+    {
+      snprintf(errortext, ET_SIZE, "Redundant pictures cannot be used with interlaced tools.");
+      error (errortext, 500);
+    }
+    if (p_Inp->RDPictureDecision)
+    {
+      snprintf(errortext, ET_SIZE, "Redundant pictures cannot be used with RDPictureDecision.");
+      error (errortext, 500);
+    }
+    if (p_Inp->NumberBFrames)
+    {
+      snprintf(errortext, ET_SIZE, "Redundant pictures cannot be used with B frames.");
+      error (errortext, 500);
+    }
+    if (p_Inp->PrimaryGOPLength < (1 << p_Inp->NumRedundantHierarchy))
+    {
+      snprintf(errortext, ET_SIZE, "PrimaryGOPLength must be equal or greater than 2^NumRedundantHierarchy.");
+      error (errortext, 500);
+    }
+    if (p_Inp->num_ref_frames < p_Inp->PrimaryGOPLength)
+    {
+      snprintf(errortext, ET_SIZE, "NumberReferenceFrames must be greater than or equal to PrimaryGOPLength.");
+      error (errortext, 500);
+    }
+  }
+
+  if (p_Inp->num_ref_frames == 1 && p_Inp->NumberBFrames)
+  {
+    fprintf( stderr, "\nWarning: B slices used but only one reference allocated within reference buffer.\n");
+    fprintf( stderr, "         Performance may be considerably compromised! \n");
+    fprintf( stderr, "         2 or more references recommended for use with B slices.\n");
+  }
+  if ((p_Inp->HierarchicalCoding || p_Inp->BRefPictures) && p_Inp->NumberBFrames)
+  {
+    fprintf( stderr, "\nWarning: Hierarchical coding or Referenced B slices used.\n");
+    fprintf( stderr, "         Make sure that you have allocated enough references\n");
+    fprintf( stderr, "         in reference buffer to achieve best performance.\n");
+  }
+
+  if (p_Inp->FastMDEnable == 0)
+  {
+    p_Inp->FastIntraMD = 0;
+    p_Inp->FastIntra16x16 = 0;
+    p_Inp->FastIntra4x4 = 0;
+    p_Inp->FastIntra8x8 = 0;
+    p_Inp->FastIntraChroma = 0;
+  }
+
+  // Init RDOQuant
+  if (p_Inp->UseRDOQuant == 1)
+  {
+    if (p_Inp->rdopt == 0)
+    {
+      snprintf(errortext, ET_SIZE, "RDO Quantization not supported with low complexity RDO.");
+      error (errortext, 500);
+    }
+
+    if (p_Inp->MbInterlace != 0)
+    {
+      printf("RDO Quantization currently not supported with MBAFF. Option disabled.\n");
+      p_Inp->UseRDOQuant = 0;
+      p_Inp->RDOQ_QP_Num = 1;
+      p_Inp->RDOQ_CP_MV = 0;
+      p_Inp->RDOQ_CP_Mode = 0;
+    }
+    else
+    {
+      p_Inp->AdaptiveRounding = 0;
+      printf("AdaptiveRounding is disabled when RDO Quantization is used\n");
+      if (p_Inp->RDOQ_QP_Num < 2)
+      {
+        p_Inp->RDOQ_CP_MV = 0;
+        p_Inp->RDOQ_CP_Mode = 0;
+      }
+    }
+  }
+  else
+  {
+    p_Inp->RDOQ_QP_Num = 1;
+    p_Inp->RDOQ_CP_MV = 0;
+    p_Inp->RDOQ_CP_Mode = 0;
+  }
+
+  if(p_Inp->num_slice_groups_minus1 > 0 && (p_Inp->GenerateMultiplePPS ==1 && p_Inp->RDPictureDecision == 1))
+  {
+    printf("Warning: Weighted Prediction may not function correctly for multiple slices\n"); 
+  }
+
+#if KEEP_B_SAME_LIST
+  if ( p_Inp->BIdenticalList > 0 && p_Inp->ReferenceReorder != 1 )
+  {
+    snprintf(errortext, ET_SIZE, "Set two lists of B picture identical can only be used when ReferenceReorder is 1");
+    error (errortext, 500);
+  }
+#endif
+
+#if CRA
+  if ( p_Inp->useCRA == 1 && p_Inp->intra_period == 0 )
+  {
+    printf("Warning: CRA can only be used for IntraPeriod > 0, set CRA to 0\n");
+    p_Inp->useCRA = 0;
+  }
+  if ( p_Inp->useCRA == 1 && p_Inp->LowDelay == 1 )
+  {
+    snprintf(errortext, ET_SIZE, "CRA cannot be used when LowDelay is 1");
+    error (errortext, 500);
+  }
+  if ( (p_Inp->useCRA == 1) && (p_Inp->PicInterlace > 0) )
+  {
+    snprintf(errortext, ET_SIZE, "HM5 like configuration options (CRA) cannot be used together with PicInterlace");
+    error (errortext, 500);
+  }
+#endif
+
+#if HM50_LIKE_MMCO
+  if ( p_Inp->HM50RefStructure == 1 )
+  {
+    printf("Warning: HM50RefStructure can only be used for random access case with GOP size equal to 8 and HM-5.0 coding order\n");
+    printf("         If it used for other coding structure, the performance may loss\n");
+  }
+  if ( p_Inp->HM50RefStructure == 1 && p_Inp->NumberBFrames != 7 )
+  {
+    printf("Warning: HM50RefStructure can only be used for random access case with NumberBFrames equal to 7, turn it off\n");
+    p_Inp->HM50RefStructure = 0;
+  }
+  if ( p_Inp->HM50RefStructure == 1 && p_Inp->LowDelay == 1 )
+  {
+    printf("Warning: HM50RefStructure cannot be used for low delay, turn it off\n");
+    p_Inp->HM50RefStructure = 0;
+  }
+  if ( (p_Inp->HM50RefStructure == 1) && (p_Inp->PicInterlace > 0) )
+  {
+    snprintf(errortext, ET_SIZE, "HM5 like configuration options (HM50RefStructure) cannot be used together with PicInterlace");
+    error (errortext, 500);
+  }
+#endif
+
+#if LD_REF_SETTING
+  if ( p_Inp->LDRefSetting == 1 )
+  {
+    printf("Warning: LDRefSetting can only be used for low delay case with GOP size equal to 4 and 4 reference frames as HM-5.0 low delay\n");
+    printf("         If other GOP size or number of reference frames are used, the performance may be loss with LDRefSetting\n");
+  }
+  if ( p_Inp->LDRefSetting == 1 && p_Inp->LowDelay == 0 )
+  {
+    snprintf(errortext, ET_SIZE, "LDRefSetting can only be used when LowDelay is 1");
+    error (errortext, 500);
+  }
+  if ( (p_Inp->LDRefSetting == 1) && (p_Inp->PicInterlace > 0) )
+  {
+    snprintf(errortext, ET_SIZE, "HM5 like configuration options (LDRefSetting) cannot be used together with PicInterlace");
+    error (errortext, 500);
+  }
+#endif
+#if B0_MORE_REF
+  if ( (p_Inp->BLevel0MoreRef == 1) && (p_Inp->PicInterlace > 0) )
+  {
+    snprintf(errortext, ET_SIZE, "HM5 like configuration options (BLevel0MoreRef) cannot be used together with PicInterlace");
+    error (errortext, 500);
+  }
+#endif
+#if KEEP_B_SAME_LIST
+  if ( (p_Inp->BIdenticalList == 1) && (p_Inp->PicInterlace > 0) )
+  {
+    snprintf(errortext, ET_SIZE, "HM5 like configuration options (BIdenticalList) cannot be used together with PicInterlace");
+    error (errortext, 500);
+  }
+#endif
+
+  profile_check(p_Inp);
+
+  if(!p_Inp->RDPictureDecision)
+  {
+    p_Inp->RDPictureMaxPassISlice = 1;
+    p_Inp->RDPictureMaxPassPSlice = 1;
+    p_Inp->RDPictureMaxPassBSlice = 1;
+    p_Inp->RDPictureDeblocking    = 0;
+    p_Inp->RDPictureDirectMode    = 0;
+    p_Inp->RDPictureFrameQPPSlice = 0;
+    p_Inp->RDPictureFrameQPBSlice = 0;
+  }
 }

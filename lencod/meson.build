@@ -4,5 +4,6 @@ executable('lencod', [
   'src/filehandle.c',
   'src/image.c',
   'src/report.c',
-  'src/me_epzs_common.c'
+  'src/me_epzs_common.c',
+  'src/conformance.c'
   ], lcommon_files, include_directories: ['inc', lcommon_inc])

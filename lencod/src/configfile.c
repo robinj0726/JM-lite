@@ -3,6 +3,7 @@
 #include "global.h"
 #include "config_common.h"
 #include "configfile.h"
+#include "conformance.h"
 #include "img_io.h"
 
 static void PatchInp                (VideoParameters *p_Vid, InputParameters *p_Inp);
@@ -1119,7 +1120,7 @@ static void PatchInp (VideoParameters *p_Vid, InputParameters *p_Inp)
   }
 #endif
 
-  // profile_check(p_Inp);
+  profile_check(p_Inp);
 
   if(!p_Inp->RDPictureDecision)
   {

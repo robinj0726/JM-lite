@@ -188,7 +188,7 @@ struct inp_par_enc
 //   int Intra4x4DirDisable;
 //   int Intra16x16ParDisable;
 //   int Intra16x16PlaneDisable;
-//   int ChromaIntraDisable;
+  int ChromaIntraDisable;
 
   int EnableIPCM;
 
@@ -207,7 +207,7 @@ struct inp_par_enc
 //   int SSIMOverlapSize;
 //   int DistortionYUVtoRGB;
 //   int CtxAdptLagrangeMult;    //!< context adaptive lagrangian multiplier
-//   int FastCrIntraDecision;
+  int FastCrIntraDecision;
 //   int disthres;
 //   int nobskip;
 //   int BiasSkipRDO;
@@ -256,7 +256,7 @@ struct inp_par_enc
 //   int SPDetectionThreshold;
 //   int SPPercentageThreshold;
 
-//   // FMO
+  // FMO
 //   char SliceGroupConfigFileName[FILE_NAME_SIZE];    //!< Filename for config info fot type 0, 2, 6
   int num_slice_groups_minus1;           //!< "FmoNumSliceGroups" in encoder.cfg, same as FmoNumSliceGroups, which should be erased later
 //   int slice_group_map_type;
@@ -365,7 +365,7 @@ struct inp_par_enc
 
 // //////////////////////////////////////////////////////////////////////////
 //   // Fidelity Range Extensions
-//   int ScalingMatrixPresentFlag;
+  int ScalingMatrixPresentFlag;
 //   int ScalingListPresentFlag[12];
 
 //   int cb_qp_index_offset;

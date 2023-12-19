@@ -52,7 +52,7 @@ struct inp_par_enc
   int  SetFirstAsLongTerm;              //!< Support for temporal considerations for CB plus encoding
   int  infile_header;                   //!< If input file has a header set this to the length of the header
 //   int  MultiSourceData;
-//   VideoDataFile   input_file2;          //!< Input video file2
+  VideoDataFile   input_file2;          //!< Input video file2
 //   VideoDataFile   input_file3;          //!< Input video file3
   int num_of_views;                     //!< number of views to encode (1=1view, 2=2views)
 #if (MVC_EXTENSION_ENABLE)
@@ -155,7 +155,7 @@ struct inp_par_enc
 //   // explicit sequence information parameters
 //   int  ExplicitSeqCoding;
 //   char ExplicitSeqFile[FILE_NAME_SIZE];
-//   int  LowDelay;                      //!< Apply HierarchicalCoding without delay (i.e., encode in the captured/display order)
+  int  LowDelay;                      //!< Apply HierarchicalCoding without delay (i.e., encode in the captured/display order)
 
   int  ReferenceReorder;              //!< Reordering based on Poc distances
 //   int  EnableReorderBslice;           //!< Perform reordering for B slice List0. Only makes sense if MSE reordering is used.
@@ -170,7 +170,7 @@ struct inp_par_enc
   int SepViewInterSearch;
   int View1NoResidueRDO;
 #endif
-//   int InterSearch[2][2][8];
+  int InterSearch[2][2][8];
 
   int DisableIntra4x4;
   int DisableIntra16x16;
@@ -181,7 +181,7 @@ struct inp_par_enc
   int FastIntra8x8;
   int FastIntraChroma;
 
-//   int DisableIntraInInter[2];
+  int DisableIntraInInter[2];
 //   int IntraDisableInterOnly;
 //   int Intra4x4ParDisable;
 //   int Intra4x4DiagDisable;
@@ -200,7 +200,7 @@ struct inp_par_enc
   int rdopt;
 //   int de;     //!< the algorithm to estimate the distortion in the decoder
 //   int I16rdo; 
-//   int MDReference[2];
+  int MDReference[2];
 //   int subMBCodingState;
   int Distortion[TOTAL_DIST_TYPES];
 //   double VisualResWavPSNR;
@@ -213,11 +213,11 @@ struct inp_par_enc
 //   int BiasSkipRDO;
 //   int ForceTrueRateRDO;
 
-// #ifdef _LEAKYBUCKET_
-//   int  NumberLeakyBuckets;
-//   char LeakyBucketRateFile[FILE_NAME_SIZE];
-//   char LeakyBucketParamFile[FILE_NAME_SIZE];
-// #endif
+#ifdef _LEAKYBUCKET_
+  int  NumberLeakyBuckets;
+  char LeakyBucketRateFile[FILE_NAME_SIZE];
+  char LeakyBucketParamFile[FILE_NAME_SIZE];
+#endif
 
   int PicInterlace;           //!< picture adaptive frame/field
   int MbInterlace;            //!< macroblock adaptive frame/field
@@ -320,7 +320,7 @@ struct inp_par_enc
   int EPZSSpatialMem;
   int EPZSBlockType;
 #if (MVC_EXTENSION_ENABLE)
-//   int EnableEnhLayerEPZSScalers;
+  int EnableEnhLayerEPZSScalers;
   int EPZSMinThresScale[2];
   int EPZSMaxThresScale[2];
   int EPZSMedThresScale[2];
@@ -419,21 +419,21 @@ struct inp_par_enc
 //   int stdRange;                         //!< 1 - standard range, 0 - full range
 //   int videoCode;                        //!< 1 - 709, 3 - 601:  See VideoCode in io_tiff.
 
-// #if B0_MORE_REF
-//   int BLevel0MoreRef;
-// #endif
-// #if KEEP_B_SAME_LIST
-//   int BIdenticalList;
-// #endif
-// #if CRA
-//   int useCRA;
-// #endif
-// #if HM50_LIKE_MMCO
-//   int HM50RefStructure;
-// #endif
-// #if LD_REF_SETTING
-//   int LDRefSetting;
-//   int UnconstrainedLDRef;
-// #endif
+#if B0_MORE_REF
+  int BLevel0MoreRef;
+#endif
+#if KEEP_B_SAME_LIST
+  int BIdenticalList;
+#endif
+#if CRA
+  int useCRA;
+#endif
+#if HM50_LIKE_MMCO
+  int HM50RefStructure;
+#endif
+#if LD_REF_SETTING
+  int LDRefSetting;
+  int UnconstrainedLDRef;
+#endif
 };
 #endif

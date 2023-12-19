@@ -202,7 +202,7 @@ Mapping Map[] = {
     //{"ExplicitHierarchyFormat",  &cfgparams.ExplicitHierarchyFormat,      1,   0.0,                       0,  0.0,              0.0,             INPUT_TEXT_SIZE,},
     //{"ExplicitSeqCoding",        &cfgparams.ExplicitSeqCoding,            0,   0.0,                       1,  0.0,              3.0,                             },
     //{"ExplicitSeqFile",          &cfgparams.ExplicitSeqFile,              1,   0.0,                       0,  0.0,              0.0,             FILE_NAME_SIZE, },
-    //{"LowDelay",                 &cfgparams.LowDelay,                     0,   0.0,                       1,  0.0,              1.0,                             },
+    {"LowDelay",                 &cfgparams.LowDelay,                     0,   0.0,                       1,  0.0,              1.0,                             },
     {"ReferenceReorder",         &cfgparams.ReferenceReorder,             0,   0.0,                       1,  0.0,              2.0,                             },
     //{"EnableReorderBslice",      &cfgparams.EnableReorderBslice,          0,   0.0,                       1,  0.0,              1.0,                             },
     //{"UseDistortionReorder",     &cfgparams.UseDistortionReorder,         0,   0.0,                       1,  0.0,              1.0,                             },
